@@ -1,20 +1,24 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-mod message;
-mod nuhxboard;
-mod types;
-mod ui;
-
 use std::{
     fs::{self, File},
     io::{self, prelude::*},
+    path::PathBuf,
+    sync::LazyLock,
 };
 
 use clap::Parser;
 use color_eyre::eyre::{Context, eyre};
-use nuhxboard::*;
 use tracing::{Level, debug, debug_span, info};
 use tracing_subscriber::{filter, prelude::*};
+
+static KEYBOARDS_PATH: LazyLock<PathBuf> = LazyLock::new(|| {
+    confy::get_configuration_file_path("NuhxBoard", None)
+        .unwrap()
+        .parent()
+        .unwrap()
+        .join("keyboard")
+});
 
 #[derive(Parser)]
 struct Args {
@@ -118,14 +122,6 @@ fn main() -> color_eyre::Result<()> {
     if !global_path.exists() {
         fs::create_dir_all(&global_path).context("Failed to create global theme directory")?;
     }
-
-    // Runs the app, initializing state using NuhxBoard::new
-    iced::daemon(NuhxBoard::new, NuhxBoard::update, NuhxBoard::view)
-        .title(NuhxBoard::title)
-        .theme(NuhxBoard::theme)
-        .subscription(NuhxBoard::subscription)
-        .font(iced_aw::ICED_AW_FONT_BYTES)
-        .run()?;
 
     Ok(())
 }

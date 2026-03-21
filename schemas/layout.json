@@ -3,17 +3,6 @@
   "title": "Layout",
   "type": "object",
   "properties": {
-    "Elements": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/BoardElement"
-      }
-    },
-    "Height": {
-      "description": "Height of the window in pixels",
-      "type": "number",
-      "format": "float"
-    },
     "Version": {
       "description": "No actual meaning. Kept for parity with NohBoard layout files.",
       "type": [
@@ -21,13 +10,24 @@
         "null"
       ],
       "format": "uint8",
-      "maximum": 255,
-      "minimum": 0
+      "minimum": 0,
+      "maximum": 255
     },
     "Width": {
       "description": "Width of the window in pixels",
       "type": "number",
       "format": "float"
+    },
+    "Height": {
+      "description": "Height of the window in pixels",
+      "type": "number",
+      "format": "float"
+    },
+    "Elements": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/BoardElement"
+      }
     }
   },
   "required": [
@@ -93,49 +93,34 @@
         }
       ]
     },
-    "CommonDefinition": {
+    "SerializablePoint": {
+      "$schema": "https://json-schema.org/draft/2029-12/schema",
+      "title": "SerializablePoint",
       "type": "object",
       "properties": {
-        "Boundaries": {
-          "description": "Vertices of the element. Used to draw a polygon for the background if no image is\nsupplied, and always used for graphical editing.",
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/SerializablePoint"
-          }
+        "X": {
+          "type": "number",
+          "format": "float"
         },
-        "Id": {
-          "description": "Unique id of the element. Used by style files.",
-          "type": "integer",
-          "format": "uint32",
-          "minimum": 0
-        },
-        "KeyCodes": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "uint32",
-            "minimum": 0
-          }
-        },
-        "Text": {
-          "type": "string"
-        },
-        "TextPosition": {
-          "description": "The position of the top-left corner of the text. **Window-relative, not\nelement-relative**.",
-          "$ref": "#/$defs/SerializablePoint"
+        "Y": {
+          "type": "number",
+          "format": "float"
         }
       },
       "required": [
-        "Id",
-        "Boundaries",
-        "TextPosition",
-        "KeyCodes",
-        "Text"
+        "X",
+        "Y"
       ]
     },
     "KeyboardKeyDefinition": {
       "type": "object",
       "properties": {
+        "Id": {
+          "description": "Unique id of the element. Used by style files.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
         "Boundaries": {
           "description": "Vertices of the element. Used to draw a polygon for the background if no image is\nsupplied, and always used for graphical editing.",
           "type": "array",
@@ -143,14 +128,9 @@
             "$ref": "#/$defs/SerializablePoint"
           }
         },
-        "ChangeOnCaps": {
-          "type": "boolean"
-        },
-        "Id": {
-          "description": "Unique id of the element. Used by style files.",
-          "type": "integer",
-          "format": "uint32",
-          "minimum": 0
+        "TextPosition": {
+          "description": "The position of the top-left corner of the text. **Window-relative, not\nelement-relative**.",
+          "$ref": "#/$defs/SerializablePoint"
         },
         "KeyCodes": {
           "type": "array",
@@ -160,16 +140,15 @@
             "minimum": 0
           }
         },
+        "Text": {
+          "type": "string"
+        },
         "ShiftText": {
           "description": "Text to display when Shift is held.",
           "type": "string"
         },
-        "Text": {
-          "type": "string"
-        },
-        "TextPosition": {
-          "description": "The position of the top-left corner of the text. **Window-relative, not\nelement-relative**.",
-          "$ref": "#/$defs/SerializablePoint"
+        "ChangeOnCaps": {
+          "type": "boolean"
         }
       },
       "required": [
@@ -180,6 +159,46 @@
         "Text",
         "ShiftText",
         "ChangeOnCaps"
+      ]
+    },
+    "CommonDefinition": {
+      "type": "object",
+      "properties": {
+        "Id": {
+          "description": "Unique id of the element. Used by style files.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "Boundaries": {
+          "description": "Vertices of the element. Used to draw a polygon for the background if no image is\nsupplied, and always used for graphical editing.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SerializablePoint"
+          }
+        },
+        "TextPosition": {
+          "description": "The position of the top-left corner of the text. **Window-relative, not\nelement-relative**.",
+          "$ref": "#/$defs/SerializablePoint"
+        },
+        "KeyCodes": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "uint32",
+            "minimum": 0
+          }
+        },
+        "Text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "Id",
+        "Boundaries",
+        "TextPosition",
+        "KeyCodes",
+        "Text"
       ]
     },
     "MouseSpeedIndicatorDefinition": {
@@ -205,25 +224,6 @@
         "Id",
         "Location",
         "Radius"
-      ]
-    },
-    "SerializablePoint": {
-      "$schema": "https://json-schema.org/draft/2029-12/schema",
-      "title": "SerializablePoint",
-      "type": "object",
-      "properties": {
-        "X": {
-          "type": "number",
-          "format": "float"
-        },
-        "Y": {
-          "type": "number",
-          "format": "float"
-        }
-      },
-      "required": [
-        "X",
-        "Y"
       ]
     }
   }

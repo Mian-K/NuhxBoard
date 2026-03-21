@@ -14,7 +14,7 @@
       ]
     },
     "DefaultKeyStyle": {
-      "$ref": "#/$defs/DefaultKeyStyle"
+      "$ref": "#/$defs/DefaultKeySTyle"
     },
     "DefaultMouseSpeedIndicatorStyle": {
       "$ref": "#/$defs/MouseSpeedIndicatorStyle"
@@ -30,13 +30,29 @@
     "ElementStyles"
   ],
   "$defs": {
-    "CustomMap": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/KeyValue"
-      }
+    "NohRgb": {
+      "type": "object",
+      "properties": {
+        "Red": {
+          "type": "number",
+          "format": "float"
+        },
+        "Green": {
+          "type": "number",
+          "format": "float"
+        },
+        "Blue": {
+          "type": "number",
+          "format": "float"
+        }
+      },
+      "required": [
+        "Red",
+        "Green",
+        "Blue"
+      ]
     },
-    "DefaultKeyStyle": {
+    "DefaultKeySTyle": {
       "type": "object",
       "properties": {
         "Loose": {
@@ -46,9 +62,128 @@
           "$ref": "#/$defs/KeySubStyle"
         }
       },
+      "anyOf": [
+        {
+          "required": [
+            "Loose"
+          ]
+        },
+        {
+          "required": [
+            "Pressed"
+          ]
+        }
+      ]
+    },
+    "KeySubStyle": {
+      "type": "object",
+      "properties": {
+        "Background": {
+          "$ref": "#/$defs/NohRgb"
+        },
+        "Text": {
+          "$ref": "#/$defs/NohRgb"
+        },
+        "Outline": {
+          "$ref": "#/$defs/NohRgb"
+        },
+        "ShowOutline": {
+          "type": "boolean"
+        },
+        "OutlineWidth": {
+          "description": "Outline thickness in pixels.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "Font": {
+          "$ref": "#/$defs/Font"
+        },
+        "BackgroundImageFileName": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
       "required": [
-        "Loose",
-        "Pressed"
+        "Background",
+        "Text",
+        "Outline",
+        "ShowOutline",
+        "OutlineWidth",
+        "Font"
+      ]
+    },
+    "Font": {
+      "type": "object",
+      "properties": {
+        "FontFamily": {
+          "type": "string"
+        },
+        "Size": {
+          "description": "Font size in pixels.",
+          "type": "number",
+          "format": "float"
+        },
+        "Style": {
+          "$ref": "#/$defs/FontStyle"
+        }
+      },
+      "required": [
+        "FontFamily",
+        "Size",
+        "Style"
+      ]
+    },
+    "FontStyle": {
+      "type": "integer",
+      "format": "uint8",
+      "minimum": 0,
+      "maximum": 255
+    },
+    "MouseSpeedIndicatorStyle": {
+      "type": "object",
+      "properties": {
+        "InnerColor": {
+          "$ref": "#/$defs/NohRgb"
+        },
+        "OuterColor": {
+          "$ref": "#/$defs/NohRgb"
+        },
+        "OutlineWidth": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "InnerColor",
+        "OuterColor",
+        "OutlineWidth"
+      ]
+    },
+    "CustomMap": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/KeyValue"
+      }
+    },
+    "KeyValue": {
+      "type": "object",
+      "properties": {
+        "Key": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "Value": {
+          "$ref": "#/$defs/ElementStyle"
+        }
+      },
+      "required": [
+        "Key",
+        "Value"
       ]
     },
     "ElementStyle": {
@@ -81,33 +216,6 @@
         }
       ]
     },
-    "Font": {
-      "type": "object",
-      "properties": {
-        "FontFamily": {
-          "type": "string"
-        },
-        "Size": {
-          "description": "Font size in pixels.",
-          "type": "number",
-          "format": "float"
-        },
-        "Style": {
-          "$ref": "#/$defs/FontStyle"
-        }
-      },
-      "required": [
-        "FontFamily",
-        "Size",
-        "Style"
-      ]
-    },
-    "FontStyle": {
-      "type": "integer",
-      "format": "uint8",
-      "maximum": 255,
-      "minimum": 0
-    },
     "KeyStyle": {
       "type": "object",
       "properties": {
@@ -132,106 +240,6 @@
           ]
         }
       }
-    },
-    "KeySubStyle": {
-      "type": "object",
-      "properties": {
-        "Background": {
-          "$ref": "#/$defs/NohRgb"
-        },
-        "BackgroundImageFileName": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "Font": {
-          "$ref": "#/$defs/Font"
-        },
-        "Outline": {
-          "$ref": "#/$defs/NohRgb"
-        },
-        "OutlineWidth": {
-          "description": "Outline thickness in pixels.",
-          "type": "integer",
-          "format": "uint32",
-          "minimum": 0
-        },
-        "ShowOutline": {
-          "type": "boolean"
-        },
-        "Text": {
-          "$ref": "#/$defs/NohRgb"
-        }
-      },
-      "required": [
-        "Background",
-        "Text",
-        "Outline",
-        "ShowOutline",
-        "OutlineWidth",
-        "Font"
-      ]
-    },
-    "KeyValue": {
-      "type": "object",
-      "properties": {
-        "Key": {
-          "type": "integer",
-          "format": "uint32",
-          "minimum": 0
-        },
-        "Value": {
-          "$ref": "#/$defs/ElementStyle"
-        }
-      },
-      "required": [
-        "Key",
-        "Value"
-      ]
-    },
-    "MouseSpeedIndicatorStyle": {
-      "type": "object",
-      "properties": {
-        "InnerColor": {
-          "$ref": "#/$defs/NohRgb"
-        },
-        "OuterColor": {
-          "$ref": "#/$defs/NohRgb"
-        },
-        "OutlineWidth": {
-          "type": "integer",
-          "format": "uint32",
-          "minimum": 0
-        }
-      },
-      "required": [
-        "InnerColor",
-        "OuterColor",
-        "OutlineWidth"
-      ]
-    },
-    "NohRgb": {
-      "type": "object",
-      "properties": {
-        "Blue": {
-          "type": "number",
-          "format": "float"
-        },
-        "Green": {
-          "type": "number",
-          "format": "float"
-        },
-        "Red": {
-          "type": "number",
-          "format": "float"
-        }
-      },
-      "required": [
-        "Red",
-        "Green",
-        "Blue"
-      ]
     }
   }
 }

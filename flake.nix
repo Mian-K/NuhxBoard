@@ -41,31 +41,26 @@
           filter = iconOrCargo;
           name = "source";
         };
+
         commonArgs = {
           inherit src;
           strictDeps = true;
 
           buildInputs = with pkgs; [
-            expat
-            fontconfig
-            freetype
-            freetype.dev
-            libGL
-            pkg-config
-            xorg.libX11
-            xorg.libXcursor
-            xorg.libXi
-            xorg.libXrandr
-            xorg.libXtst
-            xorg.libxcb
-            wayland
             libxkbcommon
-            libevdev
+            libxcb
+            libX11
+            libXi
+            libXtst
+            wayland
+            vulkan-loader
+            libgcc.lib
           ];
 
           nativeBuildInputs = with pkgs; [
             copyDesktopItems
             pkg-config
+            autoPatchelfHook
             makeWrapper
           ];
         };
@@ -76,8 +71,7 @@
           commonArgs
           // {
             inherit cargoArtifacts;
-          }
-          // {
+
             desktopItems = [
               (pkgs.makeDesktopItem {
                 name = "NuhxBoard";
@@ -120,7 +114,6 @@
         apps.default = flake-utils.lib.mkApp { drv = nuhxboard; };
 
         devShells.default = craneLib.devShell {
-          # Inherit inputs from checks.
           checks = self.checks.${system};
 
           packages = with pkgs; [
@@ -128,8 +121,6 @@
           ];
 
           LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath commonArgs.buildInputs;
-
-          RUSTFLAGS = "-Z threads=8";
         };
       }
     );

@@ -1,6 +1,6 @@
 use geo::Coord;
 pub use ordered_float::OrderedFloat;
-use schemars::{json_schema, JsonSchema};
+use schemars::{JsonSchema, json_schema};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Default, Debug, JsonSchema)]
@@ -265,21 +265,6 @@ impl JsonSchema for SerializablePoint {
             "title": "SerializablePoint",
             "type": "object"
         })
-    }
-}
-
-impl From<SerializablePoint> for iced::Point {
-    fn from(point: SerializablePoint) -> Self {
-        iced::Point::new(*point.x, *point.y)
-    }
-}
-
-impl From<iced::Point> for SerializablePoint {
-    fn from(point: iced::Point) -> Self {
-        Self {
-            x: OrderedFloat(point.x),
-            y: OrderedFloat(point.y),
-        }
     }
 }
 

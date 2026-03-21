@@ -1,15 +1,11 @@
 use bitflags::bitflags;
 use schemars::JsonSchema;
 use serde::{
+    Deserialize, Serialize,
     de::Deserializer,
     ser::{SerializeSeq, Serializer},
-    Deserialize, Serialize,
 };
-use std::{
-    collections::{HashMap, HashSet},
-    sync::{LazyLock, RwLock},
-};
-use tracing::debug;
+use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "PascalCase")]
@@ -26,10 +22,10 @@ pub struct Style {
 // This allows `HashMap<u32, ElementStyle>` to be serialized as a list of `{Key: u32, Value: ElementStyle}`
 struct CustomMap;
 impl CustomMap {
-    pub fn serialize<S>(map: &HashMap<u32, ElementStyle>, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
+    pub fn serialize<S: Serializer>(
+        map: &HashMap<u32, ElementStyle>,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error> {
         let mut seq = serializer.serialize_seq(Some(map.len()))?;
         for (key, value) in map {
             seq.serialize_element(&KeyValue {
@@ -40,16 +36,13 @@ impl CustomMap {
         seq.end()
     }
 
-    pub fn deserialize<'de, D>(deserializer: D) -> Result<HashMap<u32, ElementStyle>, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let vec = Vec::<KeyValue>::deserialize(deserializer)?;
-        let mut map = HashMap::new();
-        for item in vec {
-            map.insert(item.key, item.value);
-        }
-        Ok(map)
+    pub fn deserialize<'de, D: Deserializer<'de>>(
+        deserializer: D,
+    ) -> Result<HashMap<u32, ElementStyle>, D::Error> {
+        Ok(Vec::<KeyValue>::deserialize(deserializer)?
+            .into_iter()
+            .map(|item| (item.key, item.value))
+            .collect())
     }
 }
 
@@ -98,22 +91,6 @@ impl NohRgb {
     };
 }
 
-impl From<NohRgb> for iced::Color {
-    fn from(val: NohRgb) -> Self {
-        iced::Color::from_rgba(val.red / 255.0, val.green / 255.0, val.blue / 255.0, 1.0)
-    }
-}
-
-impl From<iced::Color> for NohRgb {
-    fn from(val: iced::Color) -> Self {
-        NohRgb {
-            red: val.r * 255.0,
-            green: val.g * 255.0,
-            blue: val.b * 255.0,
-        }
-    }
-}
-
 impl From<NohRgb> for colorgrad::Color {
     fn from(value: NohRgb) -> Self {
         colorgrad::Color::new(
@@ -125,11 +102,161 @@ impl From<NohRgb> for colorgrad::Color {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, JsonSchema)]
+#[derive(Serialize, Debug, Clone)]
 #[serde(rename_all = "PascalCase")]
 pub struct DefaultKeyStyle {
     pub loose: KeySubStyle,
     pub pressed: KeySubStyle,
+}
+
+impl JsonSchema for DefaultKeyStyle {
+    fn schema_name() -> std::borrow::Cow<'static, str> {
+        "DefaultKeyStyle".into()
+    }
+
+    fn schema_id() -> std::borrow::Cow<'static, str> {
+        "nuhxboard_types::style::DefaultKeyStyle".into()
+    }
+
+    fn json_schema(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        let sub_style = generator.subschema_for::<KeySubStyle>();
+        schemars::json_schema!({
+            "type": "object",
+            "properties": {
+                "Loose": sub_style,
+                "Pressed": sub_style
+            },
+            "anyOf": [
+                { "required": ["Loose"] },
+                { "required": ["Pressed"] }
+            ]
+        })
+    }
+}
+
+// Custom impl allows for at most one missing field
+impl<'de> Deserialize<'de> for DefaultKeyStyle {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        use serde::de::{Error, IgnoredAny, Visitor};
+
+        enum Field {
+            Loose,
+            Pressed,
+            Ignore,
+        }
+
+        struct FieldVisitor;
+        impl<'de> Visitor<'de> for FieldVisitor {
+            type Value = Field;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+                formatter.write_str("field identifier")
+            }
+
+            fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                match v {
+                    0 => Ok(Field::Loose),
+                    1 => Ok(Field::Pressed),
+                    _ => Ok(Field::Ignore),
+                }
+            }
+
+            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                match v {
+                    "Loose" => Ok(Field::Loose),
+                    "Pressed" => Ok(Field::Pressed),
+                    _ => Ok(Field::Ignore),
+                }
+            }
+
+            fn visit_bytes<E>(self, v: &[u8]) -> Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                match v {
+                    b"Loose" => Ok(Field::Loose),
+                    b"Pressed" => Ok(Field::Pressed),
+                    _ => Ok(Field::Ignore),
+                }
+            }
+        }
+
+        impl<'de> Deserialize<'de> for Field {
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+            where
+                D: Deserializer<'de>,
+            {
+                deserializer.deserialize_identifier(FieldVisitor)
+            }
+        }
+
+        struct SelfVisitor;
+        impl<'de> Visitor<'de> for SelfVisitor {
+            type Value = DefaultKeyStyle;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+                formatter.write_str("struct DefaultKeyStyle")
+            }
+
+            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::SeqAccess<'de>,
+            {
+                let loose: KeySubStyle = seq.next_element()?.ok_or_else(|| {
+                    Error::invalid_length(0, &"struct DefaultKeyStyle with 1-2 elements")
+                })?;
+                let pressed = seq.next_element()?.unwrap_or(loose.clone());
+                Ok(DefaultKeyStyle { loose, pressed })
+            }
+
+            fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                let mut loose: Option<KeySubStyle> = None;
+                let mut pressed = None;
+                while let Some(key) = map.next_key()? {
+                    match key {
+                        Field::Loose => {
+                            if loose.is_some() {
+                                return Err(Error::duplicate_field("Loose"));
+                            }
+                            loose = Some(map.next_value()?);
+                        }
+                        Field::Pressed => {
+                            if pressed.is_some() {
+                                return Err(Error::duplicate_field("Pressed"));
+                            }
+                            pressed = Some(map.next_value()?);
+                        }
+                        Field::Ignore => {
+                            let _ = map.next_value::<IgnoredAny>()?;
+                        }
+                    }
+                }
+
+                let (loose, pressed) = match (loose, pressed) {
+                    (Some(l), Some(p)) => (l, p),
+                    (Some(l), None) => (l.clone(), l),
+                    (None, Some(p)) => (p.clone(), p),
+                    (None, None) => return Err(Error::missing_field("Loose or Pressed")),
+                };
+
+                Ok(DefaultKeyStyle { loose, pressed })
+            }
+        }
+
+        deserializer.deserialize_struct("DefaultKeyStyle", &["Loose", "Pressed"], SelfVisitor)
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, JsonSchema)]
@@ -170,52 +297,22 @@ pub struct Font {
     pub style: FontStyle,
 }
 
-impl From<FontStyle> for iced::font::Weight {
+impl From<FontStyle> for gpui::FontWeight {
     fn from(val: FontStyle) -> Self {
         if val.contains(FontStyle::BOLD) {
-            iced::font::Weight::Bold
+            gpui::FontWeight::BOLD
         } else {
-            iced::font::Weight::Normal
+            gpui::FontWeight::NORMAL
         }
     }
 }
 
-impl From<FontStyle> for iced::font::Style {
+impl From<FontStyle> for gpui::FontStyle {
     fn from(val: FontStyle) -> Self {
         if val.contains(FontStyle::ITALIC) {
-            iced::font::Style::Italic
+            gpui::FontStyle::Italic
         } else {
-            iced::font::Style::Normal
-        }
-    }
-}
-
-// Iced requires font family names to have a static lifetime. This means that `String`s read from config
-// must be leaked to be used. This data structure acts as a cache of fonts that have been used, so
-// the names only need to be leaked once.
-static FONTS: LazyLock<RwLock<HashSet<&'static str>>> =
-    LazyLock::new(|| RwLock::new(HashSet::new()));
-
-impl Font {
-    pub fn as_iced(&self) -> iced::Font {
-        let name: &'static str = {
-            let read = FONTS.read().unwrap();
-            if let Some(name) = read.get(self.font_family.as_str()) {
-                name
-            } else {
-                drop(read);
-
-                let out = self.font_family.clone().leak();
-                debug!(name = out, "Leaked font family");
-                FONTS.write().unwrap().insert(out);
-                out
-            }
-        };
-        iced::Font {
-            family: iced::font::Family::Name(name),
-            weight: self.style.into(),
-            style: self.style.into(),
-            stretch: iced::font::Stretch::Normal,
+            gpui::FontStyle::Normal
         }
     }
 }
