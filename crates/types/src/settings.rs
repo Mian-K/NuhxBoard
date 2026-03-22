@@ -1,6 +1,6 @@
 use display_info::DisplayInfo;
 use serde::{Deserialize, Serialize};
-use std::fmt::Display;
+use std::{fmt::Display, rc::Rc};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Settings {
@@ -8,7 +8,7 @@ pub struct Settings {
     pub follow_for_caps_sensitive: bool,
     pub follow_for_caps_insensitive: bool,
     /// Name of the category to use.
-    pub category: String,
+    pub category: Option<Rc<str>>,
     #[serde(alias = "keyboard")]
     pub layout_index: usize,
     /// Index of the style to use.
@@ -40,7 +40,7 @@ impl Default for Settings {
             capitalization: Capitalization::Follow,
             follow_for_caps_sensitive: false,
             follow_for_caps_insensitive: false,
-            category: String::new(),
+            category: Default::default(),
             layout_index: 0,
             style: 0,
             mouse_from_center: false,

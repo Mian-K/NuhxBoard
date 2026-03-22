@@ -14,7 +14,7 @@
       ]
     },
     "DefaultKeyStyle": {
-      "$ref": "#/$defs/DefaultKeySTyle"
+      "$ref": "#/$defs/DefaultKeyStyle"
     },
     "DefaultMouseSpeedIndicatorStyle": {
       "$ref": "#/$defs/MouseSpeedIndicatorStyle"
@@ -52,7 +52,7 @@
         "Blue"
       ]
     },
-    "DefaultKeySTyle": {
+    "DefaultKeyStyle": {
       "type": "object",
       "properties": {
         "Loose": {

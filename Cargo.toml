@@ -52,9 +52,12 @@ thiserror.workspace = true
 confy = "2.0.0"
 tracing.workspace = true
 tracing-subscriber = "0.3.23"
-tracing-appender = "0.2.4"
-clap = { version = "4.6.0", features = ["derive"] }
 colorgrad.workspace = true
+gpui.workspace = true
+async-channel = "2.5.0"
+async-fs = "2.2.0"
+anyhow = "1.0.102"
+tempfile = "3.27.0"
 
 [build-dependencies]
 schemars.workspace = true
@@ -79,7 +82,7 @@ geo = "0.32.0"
 serde_json = "1.0.149"
 futures = "0.3.32"
 rdevin = "0.1.0"
-display-info = "=0.5.7"
+display-info = "0.5.9"
 schemars = "1.2.1"
 thiserror = "2.0.18"
 colorgrad = "0.8.0"

@@ -1,6 +1,5 @@
 use geo::Coord;
-pub use ordered_float::OrderedFloat;
-use schemars::{JsonSchema, json_schema};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Default, Debug, JsonSchema)]
@@ -232,47 +231,18 @@ pub struct MouseSpeedIndicatorDefinition {
     pub radius: f32,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "PascalCase")]
 pub struct SerializablePoint {
-    pub x: OrderedFloat<f32>,
-    pub y: OrderedFloat<f32>,
-}
-
-impl JsonSchema for SerializablePoint {
-    fn schema_name() -> std::borrow::Cow<'static, str> {
-        "SerializablePoint".into()
-    }
-
-    fn schema_id() -> std::borrow::Cow<'static, str> {
-        "nuhxboard_types::layout::SerializablePoint".into()
-    }
-
-    fn json_schema(_generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
-        json_schema!({
-            "$schema": "https://json-schema.org/draft/2029-12/schema",
-            "properties": {
-                "X": {
-                    "format": "float",
-                    "type": "number"
-                },
-                "Y": {
-                    "format": "float",
-                    "type": "number"
-                }
-            },
-            "required": ["X", "Y"],
-            "title": "SerializablePoint",
-            "type": "object"
-        })
-    }
+    pub x: f32,
+    pub y: f32,
 }
 
 impl From<SerializablePoint> for Coord<f32> {
     fn from(value: SerializablePoint) -> Self {
         Self {
-            x: *value.x,
-            y: *value.y,
+            x: value.x,
+            y: value.y,
         }
     }
 }
@@ -280,8 +250,8 @@ impl From<SerializablePoint> for Coord<f32> {
 impl From<Coord<f32>> for SerializablePoint {
     fn from(value: Coord<f32>) -> Self {
         Self {
-            x: OrderedFloat(value.x),
-            y: OrderedFloat(value.y),
+            x: value.x,
+            y: value.y,
         }
     }
 }

@@ -94,8 +94,6 @@
       ]
     },
     "SerializablePoint": {
-      "$schema": "https://json-schema.org/draft/2029-12/schema",
-      "title": "SerializablePoint",
       "type": "object",
       "properties": {
         "X": {
