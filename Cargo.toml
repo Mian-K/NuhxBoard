@@ -13,8 +13,6 @@ exclude = [
   "keyboards",
   ".github",
   "NuhxBoard.xcf",
-  "README.adoc",
-  "deny.toml",
   "dist-workspace.toml",
   "flake.*",
   "justfile",
@@ -22,7 +20,6 @@ exclude = [
   "schemas",
   "wix",
   "CHANGELOG.md",
-  "KEYCODES.adoc",
 ]
 
 [package.metadata.wix]
@@ -31,42 +28,35 @@ path-guid = "6BCE453A-D71C-4EF5-A85D-B4A43D72A35F"
 license = false
 eula = false
 
-[patch.crates-io]
-iced = { git = "https://github.com/iced-rs/iced.git", rev = "6279590" }
-iced_core = { git = "https://github.com/iced-rs/iced.git", rev = "6279590" }
-iced_widget = { git = "https://github.com/iced-rs/iced.git", rev = "6279590" }
-iced_graphics = { git = "https://github.com/iced-rs/iced.git", rev = "6279590" }
-
 [dependencies]
 iced-multi-window = { path = "./crates/iced-multi-window", version = "2.0.0" }
 smol.workspace = true
 color-eyre = { version = "0.6.5", default-features = false }
 display-info.workspace = true
-futures.workspace = true
 geo.workspace = true
-home = "0.5.12"
-iced = { workspace = true, features = ["image", "canvas", "advanced", "smol"] }
-iced_aw = { git = "https://github.com/iced-rs/iced_aw", rev = "2c2a5c22945c30ed6a9ac71bbc79a77c0624ff99" }
-image = { version = "0.25.8", features = ["ico"] }
-reqwest = { version = "0.12.24", default-features = false, features = [
+iced = { workspace = true, features = ["image", "smol"] }
+iced_aw = { version = "0.13.1", default-features = false, features = [
+  "quad",
+  "context_menu",
+] }
+image = { version = "0.25.10", features = ["ico"] }
+reqwest = { version = "0.13.2", default-features = false, features = [
   "json",
   "blocking",
-  "rustls-tls",
+  "rustls",
 ] }
 serde_json.workspace = true
-zip = "6.0.0"
+zip = "8.5.1"
 nuhxboard-types = { path = "crates/types", version = "1.0.0" }
 nuhxboard-logic = { path = "crates/logic", version = "1.0.0" }
 rdevin.workspace = true
-nalgebra = "0.34.1"
+nalgebra = "0.34.2"
 thiserror.workspace = true
 confy = "2.0.0"
 tracing.workspace = true
-tracing-subscriber = "0.3.20"
-tracing-appender = "0.2.3"
-iced_graphics = { version = "0.14.0-dev", features = ["geometry"] }
-clap = { version = "4.5.51", features = ["derive"] }
+tracing-subscriber = "0.3.23"
 colorgrad.workspace = true
+futures = "0.3.32"
 
 [build-dependencies]
 schemars.workspace = true
@@ -90,17 +80,16 @@ keywords = ["keyboard", "streaming", "overlay", "linux", "nohboard"]
 categories = ["visualization"]
 
 [workspace.dependencies]
-geo = "0.31.0"
-iced = "0.14.0-dev"
-serde_json = "1.0.145"
-futures = "0.3.31"
+geo = "0.32.0"
+iced = "0.14.0"
+serde_json = "1.0.149"
 rdevin = "0.1.0"
-display-info = "0.5.7"
-schemars = "1.0.4"
+display-info = "0.5.9"
+schemars = "1.2.1"
 smol = "2.0.2"
-thiserror = "2.0.17"
-colorgrad = "0.7.2"
-tracing = "0.1.41"
+thiserror = "2.0.18"
+colorgrad = "0.8.0"
+tracing = "0.1.44"
 
 # The profile that 'cargo dist' will build with
 [profile.dist]

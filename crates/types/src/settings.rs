@@ -8,11 +8,11 @@ pub struct Settings {
     pub follow_for_caps_sensitive: bool,
     pub follow_for_caps_insensitive: bool,
     /// Name of the category to use.
-    pub category: String,
+    pub category: Option<String>,
     #[serde(alias = "keyboard")]
-    pub layout_index: usize,
+    pub layout_index: Option<usize>,
     /// Index of the style to use.
-    pub style: usize,
+    pub style: Option<usize>,
     /// Whether to treat the cursor's distance from the center of the screen as its velocity.
     pub mouse_from_center: bool,
     pub mouse_sensitivity: f32,
@@ -40,9 +40,9 @@ impl Default for Settings {
             capitalization: Capitalization::Follow,
             follow_for_caps_sensitive: false,
             follow_for_caps_insensitive: false,
-            category: String::new(),
-            layout_index: 0,
-            style: 0,
+            category: None,
+            layout_index: None,
+            style: None,
             mouse_from_center: false,
             mouse_sensitivity: 50.0,
             min_press_time: 0,

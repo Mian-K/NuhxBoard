@@ -14,7 +14,7 @@
 //!
 //! You have to manually inform the `WindowManager` when a window is closed. This can be done by subscribing to `iced::window::close_events()` and passing the `Id` of each closed window to `WindowManager::was_closed()`.
 
-use dyn_clone::DynClone;
+// use dyn_clone::DynClone;
 use iced::{
     window::{self, Id},
     Element, Task,
@@ -22,9 +22,7 @@ use iced::{
 use std::{any::type_name, collections::HashMap};
 
 #[allow(private_bounds)]
-pub trait Window<App, Theme, Message, Renderer = iced::Renderer>:
-    Send + std::fmt::Debug + DynClone
-{
+pub trait Window<App, Theme, Message, Renderer = iced::Renderer>: Send + std::fmt::Debug {
     fn view<'a>(&'a self, app: &'a App) -> iced::Element<'a, Message, Theme, Renderer>;
     fn title(&self, app: &App) -> String;
     fn theme(&self, app: &App) -> Theme;
@@ -46,7 +44,7 @@ pub trait Window<App, Theme, Message, Renderer = iced::Renderer>:
     }
 }
 
-dyn_clone::clone_trait_object!(<App, Theme, Message, Renderer> Window<App, Theme, Message, Renderer>);
+// dyn_clone::clone_trait_object!(<App, Theme, Message, Renderer> Window<App, Theme, Message, Renderer>);
 
 impl<App, Theme, Message, Renderer, T: Window<App, Theme, Message, Renderer>> PartialEq<T>
     for Box<dyn Window<App, Theme, Message, Renderer>>
@@ -111,10 +109,10 @@ impl<App, Theme, Message, Renderer> WindowManager<App, Theme, Message, Renderer>
 
     pub fn open(
         &mut self,
-        window: Box<dyn Window<App, Theme, Message, Renderer>>,
+        window: impl Window<App, Theme, Message, Renderer> + 'static,
     ) -> (Id, Task<Id>) {
         let (id, task) = window::open(window.settings());
-        self.windows.insert(id, window);
+        self.windows.insert(id, Box::new(window));
         (id, task)
     }
 

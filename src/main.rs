@@ -2,38 +2,30 @@
 
 mod message;
 mod nuhxboard;
-mod types;
 mod ui;
 
+use color_eyre::eyre::{Context, eyre};
+use nuhxboard::NuhxBoard;
 use std::{
     fs::{self, File},
-    io::{self, prelude::*},
+    io::{self, Write},
+    path::PathBuf,
+    sync::LazyLock,
 };
+use tracing::{debug, debug_span, info};
 
-use clap::Parser;
-use color_eyre::eyre::{Context, eyre};
-use nuhxboard::*;
-use tracing::{Level, debug, debug_span, info};
-use tracing_subscriber::{filter, prelude::*};
-
-#[derive(Parser)]
-struct Args {
-    #[arg(long)]
-    iced_tracing: bool,
-}
+static KEYBOARDS_PATH: LazyLock<PathBuf> = LazyLock::new(|| {
+    confy::get_configuration_file_path("NuhxBoard", None)
+        .unwrap()
+        .parent()
+        .unwrap()
+        .join("keyboards")
+});
 
 fn main() -> color_eyre::Result<()> {
     color_eyre::install()?;
-    let args = Args::parse();
-    if !args.iced_tracing {
-        let registry = tracing_subscriber::registry().with(tracing_subscriber::fmt::layer());
-        let level = std::env::var("RUST_LOG").unwrap_or_default();
-        let filter =
-            filter::Targets::new().with_target("nuhxboard", level.parse().unwrap_or(Level::INFO));
-        registry.with(filter).init();
-    } else {
-        tracing_subscriber::fmt::init();
-    }
+
+    tracing_subscriber::fmt::init();
 
     let config_path = KEYBOARDS_PATH
         .parent()
@@ -119,13 +111,11 @@ fn main() -> color_eyre::Result<()> {
         fs::create_dir_all(&global_path).context("Failed to create global theme directory")?;
     }
 
-    // Runs the app, initializing state using NuhxBoard::new
-    iced::daemon(NuhxBoard::new, NuhxBoard::update, NuhxBoard::view)
-        .title(NuhxBoard::title)
-        .theme(NuhxBoard::theme)
-        .subscription(NuhxBoard::subscription)
-        .font(iced_aw::ICED_AW_FONT_BYTES)
-        .run()?;
-
-    Ok(())
+    Ok(
+        iced::daemon(NuhxBoard::new, NuhxBoard::update, NuhxBoard::view)
+            .theme(NuhxBoard::theme)
+            .title(NuhxBoard::title)
+            .subscription(NuhxBoard::subscription)
+            .run()?,
+    )
 }

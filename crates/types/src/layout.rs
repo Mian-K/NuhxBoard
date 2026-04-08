@@ -1,9 +1,9 @@
 use geo::Coord;
 pub use ordered_float::OrderedFloat;
-use schemars::{json_schema, JsonSchema};
+use schemars::{JsonSchema, json_schema};
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Default, Debug, JsonSchema)]
+#[derive(Serialize, Deserialize, Default, Debug, JsonSchema, Clone)]
 #[serde(rename_all = "PascalCase")]
 pub struct Layout {
     /// No actual meaning. Kept for parity with NohBoard layout files.
@@ -26,13 +26,18 @@ pub enum BoardElement {
 }
 
 impl BoardElement {
+    fn as_common(&self) -> Result<CommonDefinitionRef<'_>, &MouseSpeedIndicatorDefinition> {
+        match self {
+            Self::KeyboardKey(def) => Ok(def.into()),
+            Self::MouseKey(def) | Self::MouseScroll(def) => Ok(def.into()),
+            Self::MouseSpeedIndicator(def) => Err(def),
+        }
+    }
+
     pub fn id(&self) -> u32 {
-        if let Ok(def) = CommonDefinitionRef::try_from(self) {
-            *def.id
-        } else if let Self::MouseSpeedIndicator(def) = self {
-            def.id
-        } else {
-            unreachable!()
+        match self.as_common() {
+            Ok(def) => *def.id,
+            Err(def) => def.id,
         }
     }
 

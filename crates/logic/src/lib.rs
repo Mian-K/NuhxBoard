@@ -1,5 +1,3 @@
-pub mod listener;
-
 use rdevin::Button;
 
 #[derive(Debug, thiserror::Error)]

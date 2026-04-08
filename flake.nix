@@ -41,32 +41,37 @@
           filter = iconOrCargo;
           name = "source";
         };
+
+        runtimeLibs = with pkgs; [
+          wayland
+          libxkbcommon
+        ];
+
+        compileLibs =
+          with pkgs;
+          [
+            # Iced
+            vulkan-loader
+
+            # rdevin
+            libx11
+            libxi
+            libxtst
+            libxcb
+          ]
+          ++ runtimeLibs;
+
         commonArgs = {
           inherit src;
           strictDeps = true;
 
-          buildInputs = with pkgs; [
-            expat
-            fontconfig
-            freetype
-            freetype.dev
-            libGL
-            pkg-config
-            xorg.libX11
-            xorg.libXcursor
-            xorg.libXi
-            xorg.libXrandr
-            xorg.libXtst
-            xorg.libxcb
-            wayland
-            libxkbcommon
-            libevdev
-          ];
+          buildInputs = with pkgs; [ libgcc.lib ] ++ compileLibs;
 
           nativeBuildInputs = with pkgs; [
             copyDesktopItems
             pkg-config
             makeWrapper
+            autoPatchelfHook
           ];
         };
 
@@ -93,7 +98,7 @@
 
             postInstall = ''
               install -Dm644 ${src}/media/NuhxBoard.png $out/share/icons/hicolor/128x128/apps/NuhxBoard.png
-              wrapProgram $out/bin/nuhxboard --prefix LD_LIBRARY_PATH : "${pkgs.lib.makeLibraryPath commonArgs.buildInputs}"
+              wrapProgram $out/bin/nuhxboard --prefix LD_LIBRARY_PATH : "${pkgs.lib.makeLibraryPath runtimeLibs}"
             '';
           }
         );
@@ -120,16 +125,14 @@
         apps.default = flake-utils.lib.mkApp { drv = nuhxboard; };
 
         devShells.default = craneLib.devShell {
-          # Inherit inputs from checks.
           checks = self.checks.${system};
 
           packages = with pkgs; [
             cargo-dist
           ];
 
-          LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath commonArgs.buildInputs;
-
-          RUSTFLAGS = "-Z threads=8";
+          RUSTFLAGS = "-Z threads=8 -C link-arg=-Wl,-rpath,${pkgs.lib.makeLibraryPath compileLibs}";
+          RUST_LOG = "nuhxboard=info";
         };
       }
     );

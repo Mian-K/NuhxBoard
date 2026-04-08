@@ -1,5 +1,5 @@
-mod components;
+mod error;
+pub use error::Error;
 
-pub mod app;
-pub mod keyboard;
-pub mod popups;
+mod main;
+pub use main::Main;
